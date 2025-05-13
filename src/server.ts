@@ -4,21 +4,41 @@ import express from "express";
 const prisma = new PrismaClient();
 const port = 3000;
 const app = express();
+app.use(express.json())
+
 
 app.get("/movies", async (_, res) => {
-   const movies = await prisma.movie.findMany({
-      orderBy: {
-         title: "asc",
+  const movies = await prisma.movie.findMany({
+    orderBy: {
+      title: "asc",
+    },
+    include: {
+      genres: true,
+      languages: true,
+    },
+  });
+  res.json(movies);
+});
 
-      },
-      include: {
-         genres: true,
-         languages: true
-      }
-   });
-   res.json(movies);
+
+app.post("/movies", async (req, res) => {
+
+  console.log(req.body);
+
+  const { title, genre_id, language_id, oscar_count, release_date } = req.body;
+
+  await prisma.movie.create({
+    data: {
+      title: title, 
+      genre_id: genre_id,
+      language_id: language_id,
+      oscar_count: oscar_count,
+      release_date: new Date(release_date),
+    },
+  });
+  res.status(201).send();
 });
 
 app.listen(port, () => {
-   console.log(`Servidor em execução em http://localhost:${port}`);
+  console.log(`Servidor em execução em http://localhost:${port}`);
 });
