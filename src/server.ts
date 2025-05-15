@@ -68,7 +68,7 @@ app.put("/movies/:id", async (req, res) => {
 
 app.delete("/movies/:id", async (req, res) => {
   const id = Number(req.params.id);
-  
+
   try {
     const movie = await prisma.movie.findUnique({ where: { id } });
 
@@ -77,12 +77,33 @@ app.delete("/movies/:id", async (req, res) => {
     }
 
     await prisma.movie.delete({ where: { id } });
-
   } catch (error) {
     res.status(500).send({ message: "não foi possivel remover o filme" });
   }
 
   res.status(200).send();
+});
+
+app.get("/movies/:genderName", async (req, res) => {
+  try {
+    const moviesFilteredByGenderName = await prisma.movie.findMany({
+      include: {
+        genres: true,
+        languages: true,
+      },
+      where: {
+        genres: {
+          name: {
+            equals: req.params.genderName,
+            mode: "insensitive",
+          },
+        },
+      },
+    });
+    res.status(200).send(moviesFilteredByGenderName);
+  } catch (error) {
+    res.status(500).send({ message: "Falha ao atualizar um filme" });
+  }
 });
 
 app.listen(port, () => {
